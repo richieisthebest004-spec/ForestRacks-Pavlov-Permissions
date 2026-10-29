@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Sushi Clicker</title>
+  <meta name="description" content="Sushi Clicker — roll California rolls, build a sushi empire and reach absurd numbers. An original incremental browser game.">
+  <meta name="theme-color" content="#123a5c">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='9.5' fill='%23fbf7ee'/%3E%3Ccircle cx='10' cy='10' r='5.8' fill='%231f2e22'/%3E%3Ccircle cx='10' cy='10' r='4.6' fill='%23f3ead6'/%3E%3Ccircle cx='8.4' cy='8.8' r='2.1' fill='%23f26b3a'/%3E%3Ccircle cx='11.9' cy='10.7' r='1.9' fill='%238fc457'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-tab="left">
+  <noscript><p class="noscript">Sushi Clicker needs JavaScript to run. Please enable it in your browser settings.</p></noscript>
+
+  <!-- ===================== Loading screen & language picker ===================== -->
+  <div id="boot" class="boot">
+    <div class="boot-logo"><span id="boot-mascot" class="boot-mascot"></span><span class="logo-text"><span class="logo-sushi">SUSHI</span> <span class="logo-clicker">CLICKER</span></span></div>
+    <div id="boot-loading" class="boot-loading">
+      <div id="boot-roll" class="boot-roll" aria-hidden="true"></div>
+      <div class="boot-bar" role="progressbar" aria-label="Loading">
+        <div id="boot-fill" class="boot-fill"></div>
+        <span id="boot-pct" class="boot-pct">0%</span>
+      </div>
+    </div>
+    <div id="lang-picker" class="lang-picker" hidden>
+      <h1 class="lp-title">Choose your language</h1>
+      <p class="lp-sub">Elige tu idioma · Escolha seu idioma · Choisissez votre langue · Sprache wählen · Scegli la lingua · Выберите язык · 选择语言 · 言語を選択 · 언어 선택 · <span dir="rtl">اختر لغتك</span> · भाषा चुनें</p>
+      <div id="lang-list" class="lang-list"></div>
+      <p class="lp-note">You can change this later in Options.</p>
+    </div>
+    <div id="boot-crumbs" class="boot-crumbs" aria-hidden="true"></div>
+  </div>
+
+  <div id="app">
+    <!-- Compact menu bar for narrow screens -->
+    <header id="mini-bar" class="mini-bar">
+      <span class="mini-logo"><span class="logo-sushi">SUSHI</span> <span class="logo-clicker">CLICKER</span></span>
+      <nav class="mini-nav">
+        <button type="button" class="mini-btn" data-open="settings" data-i18n-aria="menu.settings"><span data-ui="settings"></span></button>
+        <button type="button" class="mini-btn" data-open="stats" data-i18n-aria="menu.stats"><span data-ui="stats"></span></button>
+        <button type="button" class="mini-btn" data-open="recipes" data-i18n-aria="menu.recipes"><span data-ui="book"></span></button>
+        <button type="button" class="mini-btn" data-open="upgrades" data-i18n-aria="upgrades"><span data-ui="upgrades"></span></button>
+        <button type="button" class="mini-btn" data-open="achievements" data-i18n-aria="menu.achievements"><span data-ui="trophy"></span><span class="badge badge-ach-mirror" hidden></span></button>
+        <button type="button" class="mini-btn" data-open="prestige" data-i18n-aria="menu.prestige"><span data-ui="spirit"></span><span class="badge badge-gold badge-prestige-mirror" hidden>!</span></button>
+      </nav>
+    </header>
+
+    <main id="game">
+      <!-- LEFT: the California roll -->
+      <section id="left-panel" class="roll-panel" aria-label="Sushi">
+        <canvas id="fall-canvas" class="fall-canvas" aria-hidden="true"></canvas>
+        <div class="rp-top">
+          <button type="button" id="logo" class="logo" data-i18n-aria="mascot.aria">
+            <span id="mascot-slot" class="mascot"></span>
+            <span class="logo-text"><span class="logo-sushi">SUSHI</span> <span class="logo-clicker">CLICKER</span></span>
+          </button>
+          <div id="mascot-bubble" class="mascot-bubble" role="status" hidden></div>
+          <div class="counter-band">
+            <div><span id="sushi-count" class="count">0</span> <span id="sushi-label" class="count-label" data-i18n="sushi">sushi</span></div>
+            <div id="sushi-sps" class="count-sps"></div>
+            <div id="sushi-click" class="count-click"></div>
+          </div>
+          <div id="buff-chips" class="buff-chips" aria-live="polite"></div>
+        </div>
+
+        <div class="stage-wrap">
+          <div id="roll-stage" class="roll-stage">
+            <div class="rays" aria-hidden="true"></div>
+            <div class="rays rays-2" aria-hidden="true"></div>
+            <div class="roll-halo" aria-hidden="true"></div>
+            <div class="roll-shadow" aria-hidden="true"></div>
+            <div class="roll-float">
+              <div id="roll-visual" class="roll-visual"><img id="roll-img" alt="" draggable="false" width="440" height="440"></div>
+              <button type="button" id="sushi-roll" class="roll-hit" data-i18n-aria="roll.aria"></button>
+            </div>
+          </div>
+        </div>
+
+        <div id="soy" class="soy" aria-hidden="true"><div class="soy-wave"></div><div class="soy-wave soy-wave-2"></div></div>
+        <div id="walker-layer" class="walker-layer"></div>
+        <div id="event-card" class="event-card" role="dialog" hidden></div>
+        <div class="rp-foot">
+          <span id="version" class="version"></span>
+          <span id="save-indicator" class="save-ind" data-tip="text" data-i18n-tip="saveTip"><span class="save-dot" aria-hidden="true"></span><span id="save-text"></span></span>
+        </div>
+      </section>
+
+      <div class="beam beam-v" aria-hidden="true"></div>
+
+      <!-- MIDDLE: menus, news and the restaurant -->
+      <section id="middle-panel" class="middle-panel" aria-label="Restaurant">
+        <header class="mid-head">
+          <div class="pillar pillar-l">
+            <button type="button" class="plaque" data-open="settings" data-i18n="menu.settings"></button>
+            <button type="button" class="plaque" data-open="stats" data-i18n="menu.stats"></button>
+            <button type="button" class="plaque" data-open="recipes" data-i18n="menu.recipes"></button>
+          </div>
+          <div class="ticker"><span id="ticker-text"></span></div>
+          <div class="pillar pillar-r">
+            <button type="button" class="plaque" data-open="achievements"><span data-i18n="menu.achievements"></span><span class="badge" id="badge-achievements" hidden></span></button>
+            <button type="button" class="plaque" data-open="prestige"><span data-i18n="menu.prestige"></span><span class="badge badge-gold" id="badge-prestige" hidden></span></button>
+            <button type="button" class="plaque" data-open="dev" id="btn-dev" hidden data-i18n="menu.dev"></button>
+          </div>
+        </header>
+        <div class="beam beam-h" aria-hidden="true"></div>
+        <div id="floor" class="floor"></div>
+      </section>
+
+      <div class="beam beam-v" aria-hidden="true"></div>
+
+      <!-- RIGHT: the Store -->
+      <aside id="right-panel" class="store" aria-label="Store">
+        <h2 class="store-title" data-i18n="store">Store</h2>
+        <div class="beam beam-h" aria-hidden="true"></div>
+        <section class="shop-upgrades">
+          <div class="section-head">
+            <h3><span data-i18n="upgrades"></span> <span id="upg-count" class="pill">0</span></h3>
+            <div class="head-actions">
+              <button type="button" id="upg-expand" class="link-btn" hidden data-i18n="showAll"></button>
+              <button type="button" class="link-btn" data-open="upgrades" data-i18n="openList"></button>
+            </div>
+          </div>
+          <div id="upgrade-strip" class="upg-strip"></div>
+        </section>
+        <div class="beam beam-h" aria-hidden="true"></div>
+        <section class="shop-buildings">
+          <div class="shop-controls">
+            <div class="buy-bar">
+              <span class="buy-label" data-i18n="buy"></span>
+              <div id="buy-qty" class="qty" role="group">
+                <button type="button" data-qty="1">1</button>
+                <button type="button" data-qty="10">10</button>
+                <button type="button" data-qty="100">100</button>
+                <button type="button" data-qty="max" data-i18n="max">Max</button>
+              </div>
+              <span id="shop-total" class="shop-total"></span>
+            </div>
+            <div id="shop-tools" class="shop-tools" hidden>
+              <input id="shop-search" type="search" data-i18n-ph="search" data-i18n-aria="search" autocomplete="off">
+              <select id="shop-sort" data-i18n-aria="sort.tier">
+                <option value="tier" data-i18n="sort.tier"></option>
+                <option value="cost" data-i18n="sort.cost"></option>
+                <option value="production" data-i18n="sort.prod"></option>
+              </select>
+              <button type="button" id="shop-afford" class="chip-toggle" aria-pressed="false" data-i18n="affordable" data-i18n-title="affordableTip"></button>
+            </div>
+          </div>
+          <div id="building-list" class="building-list"></div>
+        </section>
+      </aside>
+    </main>
+
+    <!-- Narrow screens: switch between panels -->
+    <nav id="mobile-tabs" class="mobile-tabs">
+      <button type="button" data-tab="left" aria-pressed="true"><span data-ui="kitchen"></span><span data-i18n="tab.roll"></span></button>
+      <button type="button" data-tab="middle" aria-pressed="false"><span data-ui="floor"></span><span data-i18n="tab.floor"></span></button>
+      <button type="button" data-tab="right" aria-pressed="false"><span data-ui="shop"></span><span data-i18n="tab.store"></span></button>
+    </nav>
+  </div>
+
+  <!-- ===================== Menus ===================== -->
+  <div id="overlay-backdrop" class="backdrop" hidden>
+    <div class="modal modal-wide" id="ov-upgrades" role="dialog" aria-modal="true" aria-labelledby="ovt-upgrades" hidden>
+      <div class="modal-head"><h2 id="ovt-upgrades" data-i18n="ov.upgrades"></h2><button type="button" class="modal-close"><span data-i18n="back"></span> <span data-ui="close"></span></button></div>
+      <div class="modal-body" id="ovb-upgrades"></div>
+    </div>
+    <div class="modal modal-wide" id="ov-achievements" role="dialog" aria-modal="true" aria-labelledby="ovt-achievements" hidden>
+      <div class="modal-head"><h2 id="ovt-achievements" data-i18n="ov.achievements"></h2><button type="button" class="modal-close"><span data-i18n="back"></span> <span data-ui="close"></span></button></div>
+      <div class="modal-body" id="ovb-achievements"></div>
+    </div>
+    <div class="modal modal-wide" id="ov-stats" role="dialog" aria-modal="true" aria-labelledby="ovt-stats" hidden>
+      <div class="modal-head"><h2 id="ovt-stats" data-i18n="ov.stats"></h2><button type="button" class="modal-close"><span data-i18n="back"></span> <span data-ui="close"></span></button></div>
+      <div class="modal-body" id="ovb-stats"></div>
+    </div>
+    <div class="modal modal-wide" id="ov-recipes" role="dialog" aria-modal="true" aria-labelledby="ovt-recipes" hidden>
+      <div class="modal-head"><h2 id="ovt-recipes" data-i18n="ov.recipes"></h2><button type="button" class="modal-close"><span data-i18n="back"></span> <span data-ui="close"></span></button></div>
+      <div class="modal-body" id="ovb-recipes"></div>
+    </div>
+    <div class="modal modal-wide" id="ov-prestige" role="dialog" aria-modal="true" aria-labelledby="ovt-prestige" hidden>
+      <div class="modal-head"><h2 id="ovt-prestige" data-i18n="ov.prestige"></h2><button type="button" class="modal-close"><span data-i18n="back"></span> <span data-ui="close"></span></button></div>
+      <div class="modal-body" id="ovb-prestige"></div>
+    </div>
+    <div class="modal modal-wide" id="ov-settings" role="dialog" aria-modal="true" aria-labelledby="ovt-settings" hidden>
+      <div class="modal-head"><h2 id="ovt-settings" data-i18n="ov.settings"></h2><button type="button" class="modal-close"><span data-i18n="back"></span> <span data-ui="close"></span></button></div>
+      <div class="modal-body" id="ovb-settings"></div>
+    </div>
+    <div class="modal modal-small" id="ov-welcome" role="dialog" aria-modal="true" aria-labelledby="ovt-welcome" hidden>
+      <div class="modal-head"><h2 id="ovt-welcome" data-i18n="ov.welcome"></h2><button type="button" class="modal-close" data-i18n-aria="close"><span data-ui="close"></span></button></div>
+      <div class="modal-body" id="ovb-welcome"></div>
+    </div>
+    <div class="modal" id="ov-dev" role="dialog" aria-modal="true" aria-labelledby="ovt-dev" hidden>
+      <div class="modal-head"><h2 id="ovt-dev" data-i18n="ov.dev"></h2><button type="button" class="modal-close"><span data-i18n="close"></span> <span data-ui="close"></span></button></div>
+      <div class="modal-body" id="ovb-dev"></div>
+    </div>
+  </div>
+
+  <!-- Confirmation dialog (sits above every other menu) -->
+  <div id="confirm-layer" class="backdrop confirm-layer" hidden>
+    <div class="modal modal-small" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+      <div class="modal-head"><h2 id="confirm-title"></h2></div>
+      <div class="modal-body">
+        <div id="confirm-body"></div>
+        <div id="confirm-input-wrap" hidden><input id="confirm-input" type="text" autocomplete="off" spellcheck="false" aria-label="RESET"></div>
+        <div class="btn-row btn-row-end">
+          <button type="button" class="btn btn-ghost" id="confirm-cancel">Cancel</button>
+          <button type="button" class="btn btn-gold" id="confirm-ok">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="golden-layer" class="golden-layer"></div>
+  <div id="fx-layer" class="fx-layer" aria-hidden="true"></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+  <input type="file" id="import-file" accept=".json,application/json,text/plain" hidden>
+
+  <script src="data.js"></script>
+  <script src="art.js"></script>
+  <script src="i18n.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
